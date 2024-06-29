@@ -58,6 +58,7 @@ in
       perl
     ];
     depsBuildBuild = with pkgs; [
+      wget
       ninja
       cmake
       meson

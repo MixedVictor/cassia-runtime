@@ -278,7 +278,7 @@ apply_git_patches(libtasn1 2b7ee166f031bea63c5e7badcedc69f1cea69c89)
 apply_git_patches(nettle d2cc9b95b50440c331ee143312309951a7e8d7ca)
 apply_git_patches(p11-kit dd0590d4e583f107e3e9fafe9ed754149da335d0)
 
-add_autotools_project(freetype PRE_CONFIGURE_COMMAND test -e ./configure || ./autogen.sh)
+add_autotools_project(freetype PRE_CONFIGURE_COMMAND test -e ./configure --build=${DLL_TRIPLE} || ./autogen.sh)
 add_autotools_project(libtasn1 PRE_CONFIGURE_COMMAND test -e ./configure || ./autogen.sh
                       CONFIGURE_FLAGS --disable-doc)
 if (ANDROID)
