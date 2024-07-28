@@ -1,3 +1,6 @@
 build/
 cassiaext/
 winetools/
+
+cassiaruntime.tar.gz
+baseprefix.tar.gz

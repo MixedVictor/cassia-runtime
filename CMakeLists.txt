@@ -17,6 +17,7 @@ endif()
 project(proj LANGUAGES C CXX ASM VERSION 1.0)
 
 include(ExternalProject)
+include(ProcessorCount)
 
 set(OUTPUT_PREFIX_DIR ${CMAKE_BINARY_DIR}/prefix)
 set(WINETOOLS_PATH "" CACHE PATH "Path to wine tools built for the host (when cross compiling)")
@@ -53,7 +54,6 @@ if (CMAKE_CROSSCOMPILING)
   endif()
 
   
-  set(wine_EXTRA_CONFIGURE_FLAGS "--with-wine-tools=${WINETOOLS_PATH}")
 endif()
 
 set(MINGW_DLL_BUILD_TRIPLES "")
@@ -136,13 +136,20 @@ function(add_autotools_project name)
     set(PROJ_COMPILER_SETTINGS ${COMPILER_SETTINGS})
   endif()
 
+  ProcessorCount(NPROC)
+  if(NOT NPROC EQUAL 0)
+    set(MAKEJOBS -j${NPROC})
+  else()
+    set(MAKEJOBS -j1)
+  endif()
+
   ExternalProject_Add(${name}
     INSTALL_DIR         ${OUTPUT_PREFIX_DIR}
     SOURCE_DIR          ${CMAKE_CURRENT_SOURCE_DIR}/${name}
     DOWNLOAD_COMMAND    COMMAND cd <SOURCE_DIR> && ${ARG_PRE_CONFIGURE_COMMAND}
     CONFIGURE_COMMAND   ${MINGW_COMMAND} <SOURCE_DIR>/configure ${PROJ_COMPILER_SETTINGS} --prefix=<INSTALL_DIR> --host=${CMAKE_C_COMPILER_TARGET} ${ARG_CONFIGURE_FLAGS}
-    BUILD_COMMAND       ${MINGW_COMMAND} make -j ${ARG_MAKE_TARGET}
-    INSTALL_COMMAND     ${MINGW_COMMAND} make prefix=<INSTALL_DIR> -j ${ARG_INSTALL_TARGET}
+    BUILD_COMMAND       ${MINGW_COMMAND} make ${MAKEJOBS} ${ARG_MAKE_TARGET}
+    INSTALL_COMMAND     ${MINGW_COMMAND} make prefix=<INSTALL_DIR> ${MAKEJOBS} ${ARG_INSTALL_TARGET}
     LOG_CONFIGURE       TRUE
     LOG_BUILD           TRUE
     LOG_INSTALL         TRUE
@@ -305,7 +312,7 @@ add_autotools_project(wine
                       BUILD_ALWAYS
                       LINK_CASSIAEXT
                       PRE_CONFIGURE_COMMAND autoreconf -i
-                      CONFIGURE_FLAGS --enable-archs=${DLL_BUILD_ARCHITECTURES} ${wine_EXTRA_CONFIGURE_FLAGS}
+                      CONFIGURE_FLAGS --disable-win16 --disable-tests --with-alsa --without-usb --without-v4l2 --with-x --with-vulkan --with-freetype --with-mingw --with-pthread --with-wine-tools=${WINETOOLS_PATH} --x-includes=${CASSIAEXT_PREFIX}/include --x-libraries=${CASSIAEXT_PREFIX}/lib --enable-archs=${DLL_BUILD_ARCHITECTURES}
                       DEPENDS ${wine_DEPENDS})
 add_dll_meson_project(mesa
                       CONFIGURE_FLAGS --force-fallback-for=zlib -Dgallium-drivers=zink
